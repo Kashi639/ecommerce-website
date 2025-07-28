@@ -168,7 +168,7 @@ router.get("/", async (req, res) => {
       material,
       brand,
       limit,
-    } = req.query;
+    } = req.query; ///api/products?color=red&size=M
 
     let query = {};
 
@@ -184,6 +184,7 @@ router.get("/", async (req, res) => {
     if (material) {
       query.material = { $in: material.split(",") }; // "Cotton,Wool,Silk" => ["Cotton", "Wool", "Silk"]
     }
+    // $in means: match any product where material is one of those values.
 
     if (brand) {
       query.brand = { $in: brand.split(",") };
@@ -203,13 +204,13 @@ router.get("/", async (req, res) => {
 
     if (minPrice || maxPrice) {
       query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      if (minPrice) query.price.$gte = Number(minPrice); // $gte: greater than or equal to minPrice
+      if (maxPrice) query.price.$lte = Number(maxPrice); // $lte: less than or equal to maxPrice
     }
 
     if (search) {
       query.$or = [
-        { name: { $regex: search, $options: "i" } },
+        { name: { $regex: search, $options: "i" } }, // regular expression, case-insensitively (i)
         { description: { $regex: search, $options: "i" } },
       ];
     }
@@ -219,10 +220,10 @@ router.get("/", async (req, res) => {
     if (sortBy) {
       switch (sortBy) {
         case "priceAsc":
-          sort = { price: 1 };
+          sort = { price: 1 }; // 1 means asc
           break;
         case "priceDesc":
-          sort = { price: -1 };
+          sort = { price: -1 }; // -1 means desc
           break;
         case "popularity":
           sort = { rating: -1 };
@@ -235,11 +236,86 @@ router.get("/", async (req, res) => {
     // Fetch products from database
     let products = await Product.find(query)
       .sort(sort)
-      .limit(Number(limit) || 0);
+      .limit(Number(limit) || 0); // 0 menas no limit
     res.json(products);
   } catch (error) {
     console.error(error);
     res.status(500).send("Server Error");
   }
 });
+
+// @route GET /api/products/best-seller
+// @desc Retrieve the product with the highest rating
+// @access Public
+router.get("/best-seller", async (req, res) => {
+  try {
+    const bestSeller = await Product.findOne().sort({ rating: -1 });
+    if (!bestSeller) {
+      res.status(404).json({ message: "No best seller found" });
+    }
+    res.json(bestSeller);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+});
+
+// @route GET /api/products/new-arrivals
+// @desc Retrieve latest 8 products = Creation date
+// @access Public
+router.get("/new-arrivals", async (req, res) => {
+  try {
+    const newArrival = await Product.find().sort({ createdAt: -1 }).limit(8);
+    if (!newArrival) {
+      res.status(404).json({ message: "No new arrivals found" });
+    }
+    res.json(newArrival);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+});
+
+// @route GET /api/products/:id
+// @desc Get a single product by its ID
+// @access Public
+router.get("/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).json({ message: "Product not found" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+});
+
+// @route GET /api/products/similar/:id
+// @desc Retrieve similar products based on the current products gender and category
+// @access Public
+router.get("/similar/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const product = await Product.findById(id);
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+    }
+
+    // To find 4 similar products based on gender and category
+    const similarProducts = await Product.find({
+      _id: { $ne: id }, // $ne not equal to, Exclude the current product ID
+      gender: product.gender,
+      category: product.category,
+    }).limit(4);
+
+    res.json(similarProducts);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server Error");
+  }
+});
+
 module.exports = router;
