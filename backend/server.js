@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const checkoutRoutes = require("./routes/checkoutRoutes");
 
 const app = express(); //initialize express application
 app.use(express.json()); //server is able to work with json data
@@ -25,6 +26,7 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRoutes); //this prepends /api/users to all routes
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/checkout", checkoutRoutes);
 
 app.listen(PORT, () => {
   //start server on port 9000
