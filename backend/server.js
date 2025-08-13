@@ -10,6 +10,8 @@ const orderRoutes = require("./routes/orderRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const subscribeRoute = require("./routes/subscribeRoute");
 const adminRoutes = require("./routes/adminRoutes");
+const productAdminRoutes = require("./routes/productAdminRoutes");
+const adminOrderRoutes = require("./routes/adminOrderRoutes");
 
 const app = express(); //initialize express application
 app.use(express.json()); //server is able to work with json data
@@ -37,6 +39,8 @@ app.use("/api", subscribeRoute);
 
 // Admin
 app.use("/api/admin/users", adminRoutes);
+app.use("/api/admin/products", productAdminRoutes);
+app.use("/api/admin/orders", adminOrderRoutes);
 
 app.listen(PORT, () => {
   //start server on port 9000
