@@ -157,7 +157,7 @@ router.get("/", async (req, res) => {
   try {
     const {
       collection,
-      size,
+      sizes,
       color,
       gender,
       minPrice,
@@ -168,7 +168,7 @@ router.get("/", async (req, res) => {
       material,
       brand,
       limit,
-    } = req.query; ///api/products?color=red&size=M
+    } = req.query; ///api/products?color=red&sizes=M
 
     let query = {};
 
@@ -190,8 +190,8 @@ router.get("/", async (req, res) => {
       query.brand = { $in: brand.split(",") };
     }
 
-    if (size) {
-      query.size = { $in: size.split(",") };
+    if (sizes) {
+      query.sizes = { $in: sizes.split(",") };
     }
 
     if (color) {
